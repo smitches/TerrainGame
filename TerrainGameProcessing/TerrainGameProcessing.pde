@@ -7,7 +7,6 @@ void setup(){
   float offset = 2 * scale * alpha;
   float alpha_offset = alpha * offset;
   float alpha_scale = scale * alpha;
-  float half_offset = 1.5 * alpha_scale;
   float w = width/2, h = height/2;
   
   //center row
@@ -36,4 +35,18 @@ void setup(){
   Hexagon hH = new Hexagon(w                   , h - 2 * alpha_offset, scale);
   Hexagon hI = new Hexagon(w + 2 * alpha_scale , h - 2 * alpha_offset, scale);
   Hexagon hJ = new Hexagon(w - 2 * alpha_scale , h - 2 * alpha_offset, scale);
+  
+  print(game.intersections.size());
+  Player p1 = new Player("Brian",1,color(200,0,200));
+  Player p2 = new Player("Sofi",2,color(200,0,0));
+  Player p3 = new Player("Jerry",3,color(0,0,200));  
+  Player p4 = new Player("Damon",4,color(200,100,100));
+  game.roads.get(10).owner = p1;
+  game.roads.get(14).owner = p2;
+  game.roads.get(2).owner = p3;
+  game.roads.get(20).owner = p4;
+  game.roads.get(4).owner = p4;
+  game.drawGame();
 }
+
+void draw(){}
