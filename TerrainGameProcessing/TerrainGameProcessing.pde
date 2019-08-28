@@ -8,27 +8,32 @@ void setup(){
   float alpha_offset = alpha * offset;
   float alpha_scale = scale * alpha;
   float half_offset = 1.5 * alpha_scale;
-  Hexagon h1 = new Hexagon(width/2             , height/2, scale);
-  Hexagon h2 = new Hexagon(width/2 + offset    , height/2, scale);
-  Hexagon h3 = new Hexagon(width/2 - offset    , height/2, scale);
-  Hexagon h4 = new Hexagon(width/2 + 2 * offset, height/2, scale);
-  Hexagon h5 = new Hexagon(width/2 - 2 * offset, height/2, scale);
+  float w = width/2, h = height/2;
   
-  Hexagon h6 = new Hexagon(width/2 - alpha_scale    , height/2 + alpha_offset, scale);
-  Hexagon h7 = new Hexagon(width/2 - alpha_scale    , height/2 - alpha_offset, scale);
-  Hexagon h8 = new Hexagon(width/2 - 3 * alpha_scale, height/2 + alpha_offset, scale);
-  Hexagon h9 = new Hexagon(width/2 - 3 * alpha_scale, height/2 - alpha_offset, scale);
+  //center row
+  Hexagon h1 = new Hexagon(w                   , h                   , scale);
+  Hexagon h2 = new Hexagon(w +     offset      , h                   , scale);
+  Hexagon h3 = new Hexagon(w -     offset      , h                   , scale);
+  Hexagon h4 = new Hexagon(w + 2 * offset      , h                   , scale);
+  Hexagon h5 = new Hexagon(w - 2 * offset      , h                   , scale);
   
-  Hexagon hA = new Hexagon(width/2 + alpha_scale    , height/2 + alpha_offset, scale);
-  Hexagon hB = new Hexagon(width/2 + alpha_scale    , height/2 - alpha_offset, scale);
-  Hexagon hC = new Hexagon(width/2 + 3 * alpha_scale, height/2 + alpha_offset, scale);
-  Hexagon hD = new Hexagon(width/2 + 3 * alpha_scale, height/2 - alpha_offset, scale);
+  //row 1 above & 1 below
+  Hexagon h6 = new Hexagon(w -     alpha_scale , h +     alpha_offset, scale);
+  Hexagon h7 = new Hexagon(w -     alpha_scale , h -     alpha_offset, scale);
+  Hexagon h8 = new Hexagon(w - 3 * alpha_scale , h +     alpha_offset, scale);
+  Hexagon h9 = new Hexagon(w - 3 * alpha_scale , h -     alpha_offset, scale);
   
-  Hexagon hE = new Hexagon(width/2                   , height/2 + 2 * alpha_offset, scale);
-  Hexagon hF = new Hexagon(width/2 + 2 * alpha_scale , height/2 + 2 * alpha_offset, scale);
-  Hexagon hG = new Hexagon(width/2 - 2 * alpha_scale , height/2 + 2 * alpha_offset, scale);
+  Hexagon hA = new Hexagon(w +     alpha_scale , h +     alpha_offset, scale);
+  Hexagon hB = new Hexagon(w +     alpha_scale , h -     alpha_offset, scale);
+  Hexagon hC = new Hexagon(w + 3 * alpha_scale , h +     alpha_offset, scale);
+  Hexagon hD = new Hexagon(w + 3 * alpha_scale , h -     alpha_offset, scale);
+  
+  //row 2 above & 2 below
+  Hexagon hE = new Hexagon(w                   , h + 2 * alpha_offset, scale);
+  Hexagon hF = new Hexagon(w + 2 * alpha_scale , h + 2 * alpha_offset, scale);
+  Hexagon hG = new Hexagon(w - 2 * alpha_scale , h + 2 * alpha_offset, scale);
 
-  Hexagon hH = new Hexagon(width/2                   , height/2 - 2 * alpha_offset, scale);
-  Hexagon hI = new Hexagon(width/2 + 2 * alpha_scale , height/2 - 2 * alpha_offset, scale);
-  Hexagon hJ = new Hexagon(width/2 - 2 * alpha_scale , height/2 - 2 * alpha_offset, scale);
+  Hexagon hH = new Hexagon(w                   , h - 2 * alpha_offset, scale);
+  Hexagon hI = new Hexagon(w + 2 * alpha_scale , h - 2 * alpha_offset, scale);
+  Hexagon hJ = new Hexagon(w - 2 * alpha_scale , h - 2 * alpha_offset, scale);
 }
