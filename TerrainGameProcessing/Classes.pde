@@ -2,7 +2,11 @@ float alpha = .866;
 float beta = .5;
 HashMap<String,Float> pointMap = new HashMap<String,Float>();
 Game game = new Game();
+Player activePlayer = new Player("Brian",1,color(24,58,242));
 
+enum PStatus{
+  ROAD, SETTLEMENT, CITY, INACTIVE, ACTIVE, ROBBER, DEVELOPMENT, TRADE;
+}
 enum IStatus{
   EMPTY, SETTLEMENT, CITY;
 }
@@ -19,12 +23,14 @@ class Player{
   int number;
   ArrayList<Material> materials;
   color playerColor;
+  PStatus status;
   Player(String name, int number, color c){
     this.name = name;
     this.number = number;
     this.materials = new ArrayList<Material>();
     this.playerColor = c;
     game.players.add(this);
+    this.status = PStatus.INACTIVE;
   }
 }
 
@@ -38,7 +44,7 @@ class Road{
   boolean available(){
     return this.owner == null;
   }
-  void drawRoad(){
+  void display(){
     
     strokeWeight(2);
     stroke(0);
@@ -46,6 +52,41 @@ class Road{
    
     line(this.i1.x , this.i1.y , this.i2.x , this.i2.y);
     
+  }
+  
+  PVector getDistance(float x, float y){
+    PVector result = new PVector(); 
+    float x1 = this.i1.x;
+    float y1 = this.i1.y;
+    float x2 = this.i2.x;
+    float y2 = this.i2.y;
+    
+    float dx = x2 - x1; 
+    float dy = y2 - y1; 
+    float d = sqrt( dx*dx + dy*dy ); 
+    float ca = dx/d; // cosine
+    float sa = dy/d; // sine 
+    
+    float mX = (-x1+x)*ca + (-y1+y)*sa; 
+    
+    if( mX <= 0 ){
+      result.x = x1; 
+      result.y = y1; 
+    }
+    else if( mX >= d ){
+      result.x = x2; 
+      result.y = y2; 
+    }
+    else{
+      result.x = x1 + mX*ca; 
+      result.y = y1 + mX*sa; 
+    }
+    
+    dx = x - result.x; 
+    dy = y - result.y; 
+    result.z = sqrt( dx*dx + dy*dy ); 
+    
+    return result;
   }
 }
 
@@ -62,6 +103,26 @@ class Intersection{
   }
   void addHexagon(Hexagon h){
     hexagons.add(h);
+  }
+  float getDistance(float x, float y){
+    return sqrt(sq(x - this.x) + sq(y - this.y));
+  }
+  void drawSettlement(){
+    color cFill = owner.playerColor;
+    fill(cFill);
+    ellipse(x,y,10,10);
+  }
+  void drawCity(){
+    color cFill = owner.playerColor;
+    fill(cFill);
+    ellipse(x,y,20,20);
+  }
+  void display(){
+    if (status == IStatus.CITY){
+      this.drawCity();
+    }else if (status == IStatus.SETTLEMENT){
+      this.drawSettlement();
+    }
   }
 }
 
@@ -88,10 +149,34 @@ class Game{
     roads.add(r);
     return r;
   }
-  void drawGame(){
+  void display(){
     for (Hexagon h : hexagons){h.drawHexagon();}
-    for (Road r : roads){r.drawRoad();}
+    for (Road r : roads){r.display();}
+    for (Intersection i : intersections){i.display();}
   }
+  Road closestRoad(float x, float y){
+    Road returnRoad = roads.get(0);
+    float minDist = returnRoad.getDistance(x,y).z;
+    for (Road r : roads){
+      if (minDist > r.getDistance(x,y).z){
+        minDist = r.getDistance(x,y).z;
+        returnRoad = r;
+      }
+    }
+    return returnRoad;
+  }
+  Intersection closestIntersection(float x, float y){
+    Intersection returnIntersection = intersections.get(0);
+    float minDist = returnIntersection.getDistance(x,y);
+    for (Intersection i : intersections){
+      if (minDist > i.getDistance(x,y)){
+        minDist = i.getDistance(x,y);
+        returnIntersection = i;
+      }
+    }
+    return returnIntersection;
+  }
+  
 }
 
 class Hexagon{
