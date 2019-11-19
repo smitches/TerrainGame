@@ -1,9 +1,3 @@
-float alpha = .866;
-float beta = .5;
-HashMap<String,Float> pointMap = new HashMap<String,Float>();
-Game game = new Game();
-Player activePlayer = new Player("Brian",1,color(24,58,242));
-
 enum PStatus{
   ROAD, SETTLEMENT, CITY, INACTIVE, ACTIVE, ROBBER, DEVELOPMENT, TRADE;
 }
@@ -11,11 +5,12 @@ enum IStatus{
   EMPTY, SETTLEMENT, CITY;
 }
 enum MType{
-  WOOD, BRICK, ORE, WHEAT, SHEEP;
+  WOOD, BRICK, ORE, WHEAT, SHEEP, DESERT;
 }
 
 class Material{
   MType type;
+  color materialColor;
 }
 
 class Player{
@@ -24,6 +19,7 @@ class Player{
   ArrayList<Material> materials;
   color playerColor;
   PStatus status;
+  RectButton roadBtn,settlementBtn,cityBtn,tradeBtn,devBtn,finishBtn;
   Player(String name, int number, color c){
     this.name = name;
     this.number = number;
@@ -31,12 +27,29 @@ class Player{
     this.playerColor = c;
     game.players.add(this);
     this.status = PStatus.INACTIVE;
+    this.makeBtns();
+  }
+  void makeBtns(){
+    roadBtn = new RectButton(15,15,100,50, color(255), "Build Road");
+    settlementBtn = new RectButton(15,75,100,50, color(255), "Build Settlement");
+    cityBtn = new RectButton(15,135,100,50, color(255),  "Build City");
+    tradeBtn = new RectButton(15,195,100,50, color(255), "Trade Resources");
+    devBtn = new RectButton(15,255,100,50, color(255), "Buy\nDevelopment\nCard");
+    finishBtn = new RectButton(15,315,100,50, color(255), "Finish Turn");
+  }
+  void display(){
+    roadBtn.display();
+    settlementBtn.display();
+    cityBtn.display();
+    tradeBtn.display();
+    devBtn.display();
+    finishBtn.display();
   }
 }
 
 class Road{
   Intersection i1, i2;
-  Player owner;
+  Player owner, proposedOwner;
   Road(Intersection i1, Intersection i2){
     this.i1 = i1;
     this.i2 = i2;
@@ -45,13 +58,10 @@ class Road{
     return this.owner == null;
   }
   void display(){
-    
     strokeWeight(2);
     stroke(0);
     if (this.owner != null){stroke(this.owner.playerColor);strokeWeight(5);}
-   
     line(this.i1.x , this.i1.y , this.i2.x , this.i2.y);
-    
   }
   
   PVector getDistance(float x, float y){
@@ -95,6 +105,7 @@ class Intersection{
   ArrayList<Hexagon> hexagons;
   IStatus status;
   Player owner;
+  
   Intersection(float x, float y){
     this.x = x;
     this.y = y;
@@ -109,11 +120,13 @@ class Intersection{
   }
   void drawSettlement(){
     color cFill = owner.playerColor;
+    stroke(cFill);
     fill(cFill);
     ellipse(x,y,10,10);
   }
   void drawCity(){
     color cFill = owner.playerColor;
+    stroke(cFill);
     fill(cFill);
     ellipse(x,y,20,20);
   }
@@ -177,12 +190,26 @@ class Game{
     return returnIntersection;
   }
   
+  void nextActivePlayer(){
+    if (activePlayer == null){
+      activePlayer = players.get(0);
+      activePlayer.status = PStatus.ACTIVE;
+      return;
+    }
+    activePlayer.status = PStatus.INACTIVE;
+    int nextIndex = players.indexOf(activePlayer)+1;
+    if (nextIndex == players.size()){nextIndex = 0;}
+    activePlayer = players.get(nextIndex);
+    activePlayer.status = PStatus.ACTIVE;
+  }
+  
 }
 
 class Hexagon{
   float x,y;
   ArrayList<Intersection> hexIntersections;
   MType type;
+  int number;
   
   public Hexagon(float x, float y, float scale){
      float a = alpha * scale;
@@ -192,22 +219,26 @@ class Hexagon{
      this.y = y;
      this.hexIntersections = new ArrayList<Intersection>();
      
-     Intersection i1 = game.getIntersection(round(x)    , round(y + 2*b));
-     Intersection i2 = game.getIntersection(round(x)    , round(y - 2*b));
-     Intersection i3 = game.getIntersection(round(x + a), round(y +   b));
-     Intersection i4 = game.getIntersection(round(x + a), round(y -   b));
-     Intersection i5 = game.getIntersection(round(x - a), round(y -   b));
-     Intersection i6 = game.getIntersection(round(x - a), round(y +   b));
+     //Make the intersections
+     makeIntersection(round(x)    , round(y - 2*b));
+     makeIntersection(round(x - a), round(y -   b));
+     makeIntersection(round(x - a), round(y +   b));
+     makeIntersection(round(x)    , round(y + 2*b));
+     makeIntersection(round(x + a), round(y +   b));
+     makeIntersection(round(x + a), round(y -   b));
      
-     hexIntersections.add(i1);  i1.addHexagon(this);
-     hexIntersections.add(i6);  i6.addHexagon(this);
-     hexIntersections.add(i5);  i5.addHexagon(this);
-     hexIntersections.add(i2);  i2.addHexagon(this);
-     hexIntersections.add(i4);  i4.addHexagon(this);
-     hexIntersections.add(i3);  i3.addHexagon(this);
-     
-     this.drawHexagon();
-     game.hexagons.add(this);
+     //Make all the roads
+    for (int i = 0; i<this.hexIntersections.size()-1; i++){
+      game.getRoad(hexIntersections.get(i), hexIntersections.get(i+1));
+    }
+    game.getRoad(hexIntersections.get(0), hexIntersections.get(hexIntersections.size()-1));
+    game.hexagons.add(this);
+  }
+  
+  void makeIntersection(float x, float y){
+    Intersection i = game.getIntersection(x, y);
+    hexIntersections.add(i);
+    i.addHexagon(this);
   }
   
   void setMaterial(MType m){
@@ -215,16 +246,34 @@ class Hexagon{
   }
   
   void drawHexagon(){
-    fill(200);
+    if (type == MType.WHEAT){
+      fill(227,172,32);
+    }else if (type == MType.WOOD){
+      fill(33,118,23);
+    }else if (type == MType.ORE){
+      fill(180);
+    }else if (type == MType.SHEEP){
+      fill(128,216,127);
+    }else if (type == MType.BRICK){
+      fill(230,46,39);
+    }else if (type == MType.DESERT){
+      fill(139,104,34);
+    }
+    
+    
+    //draw the shape
     beginShape();
     for (Intersection i : this.hexIntersections){
       vertex(i.x,i.y);
     }
     endShape(CLOSE);
     
-    for (int i = 0; i<this.hexIntersections.size()-1; i++){
-      game.getRoad(hexIntersections.get(i), hexIntersections.get(i+1));
-    }
+    strokeWeight(1);
+    fill(255);
+    ellipse(x,y,30,30);
+    fill(0);
+    textAlign(CENTER,CENTER);
+    text(str(number),x,y-2);
     
   }
 }
